@@ -26,20 +26,20 @@ main:
   xorb %al, %al
   call scanf
 
-  movb op, %rbp # TODO: load the operation for comparisons
-  movq a, %rsp  # TODO: and the LHS
+  movb op, %dil # TODO: load the operation for comparisons
+  movq a, %rax  # TODO: and the LHS
 
   # TODO: Analyze operation and execute
-  cmpb (%rbp), '+'
+  cmpb $'+', %dil
   je addition
 
-  cmpb (%rbp), '-'
+  cmpb $'-', %dil
   je subtraction
 
-  cmpb (%rbp), '*'
+  cmpb $'*', %dil
   je multiplication
 
-  cmpb (%rbp), '/'
+  cmpb $'/', %dil
   je division
 
   jmp opError # Throw unknown operation error if not recognized
@@ -56,32 +56,49 @@ main:
   division:
     # Divide values
     # Check second value not zero
-    cmpq (%rcx), $0x0
-    je divZeroError
+    cmpq $0x0, b
+    je divZeroError # Jump if dividing by zero
+    
+    # Else, continue
+    movq b, %rcx
+    cqto
+    idivq %rcx
+    jmp print
 
-  # TODO: Print result
-
-  #call printf
+  # Print result
+  print:
+    movq %rax, %rsi
+    leaq output_fmt, %rdi
+    movq $0, %rax
+    call printf
+    movq $0, %rax
+    jmp end
 
   # TODO: Print error if operation cannot be (safely) performed
   divZeroError:
     # Divide by zero
     # set error message: "Divide by zero error"
-    #call printf
-    movq $0x1, %rax
+    leaq div_error_msg, %rdi
+    movq $0, %rax
+    call printf
+
+    movq $1, %rax
     jmp end
 
   opError:
     # Unrecognized operation
     # set error message: "Unknown operation"
-    #call printf
-    movq $0x1, %rax
+    leaq op_error_msg, %rdi
+    movq $0, %rax
+    call printf
+
+    movq $1, %rax
     jmp end
   
   end:
     # End of the code
     # Return value should already be set by error handlers
-    ret
+    
 
   # if (op_char == '+') {
   #   ...
@@ -107,6 +124,12 @@ output_fmt:
   .asciz "%ld\n"
 scanf_fmt: 
   .asciz "%ld %c %ld"  # TODO: modify as needed
+
+# New error messages:
+div_error_msg:
+  .asciz "Divide by zero error\n"
+op_error_msg:
+  .asciz "Unknown operation\n"
 
 # "Slots" for scanf
 a:  .quad 0
