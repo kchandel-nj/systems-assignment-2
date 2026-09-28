@@ -46,12 +46,18 @@ main:
 
   addition:
     # Add values
+    addq b, %rax
+    jmp print
 
   subtraction:
     # Subtract values
+    subq b, %rax
+    jmp print
 
   multiplication:
     # Multiply values
+    imul b, %rax
+    jmp print
 
   division:
     # Divide values
